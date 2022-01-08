@@ -1,0 +1,5 @@
+read x_1;
+while x_1 < 5 then
+  write x_1;
+  x_1 := x_1 + 1;
+endwhile;
