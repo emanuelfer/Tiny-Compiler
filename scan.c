@@ -9,7 +9,7 @@
 #include "util.h"
 #include "scan.h"
 
-/* states in scanner DFA */
+/* Corresponde aos estados do AFD da linguagem */
 typedef enum
 {
   START,
@@ -20,21 +20,18 @@ typedef enum
   DONE
 } StateType;
 
-/* lexeme of identifier or reserved word */
+/* vetor de char para armazenamento do lexema do token corrente */
 char tokenString[MAXTOKENLEN + 1];
 
-/* BUFLEN = length of the input buffer for
-   source code lines */
+/* Tamanho do vetor para armazenamento linha a linha do código fonte */
 #define BUFLEN 256
 
-static char lineBuf[BUFLEN]; /* holds the current line */
-static int linepos = 0;      /* current position in LineBuf */
-static int bufsize = 0;      /* current size of buffer string */
+static char lineBuf[BUFLEN]; /* vetor para armazenamento linha a linha do código fonte */
+static int linepos = 0;      /* guarda a posição corrente de leitura em linebuf */
+static int bufsize = 0;      /* tamanho da string corrente em linebuf em determinado momento */
 static int EOF_flag = FALSE; /* corrects ungetNextChar behavior on EOF */
 
-/* getNextChar fetches the next non-blank character
-   from lineBuf, reading in a new line if lineBuf is
-   exhausted */
+/* Função chamada para retornar o proximo caracter a partir de linebuf */
 static int getNextChar(void)
 {
   if (!(linepos < bufsize))
@@ -58,55 +55,54 @@ static int getNextChar(void)
     return lineBuf[linepos++];
 }
 
-/* ungetNextChar backtracks one character
-   in lineBuf */
+/*Retrocede uma posição no buffer */
 static void ungetNextChar(void)
 {
   if (!EOF_flag)
     linepos--;
 }
 
-/* lookup table of reserved words */
+/* Tabela de palavras reservadas contém todas as palavras reservadas com seu correspondente lexema */
 static struct
 {
   char *str;
   TokenType tok;
 } reservedWords[MAXRESERVED] = {{"if", IF}, {"then", THEN}, {"else", ELSE}, {"endif", ENDIF}, {"repeat", REPEAT}, {"until", UNTIL}, {"read", READ}, {"write", WRITE}, {"while", WHILE}, {"endwhile", ENDWHILE}};
 
-/* lookup an identifier to see if it is a reserved word */
-/* uses linear search */
+/*Recebe uma string e verifica se a string é uma palavra reservada*/
+/* faz isso usando busca linear*/
 static TokenType reservedLookup(char *s)
 {
   int i;
   for (i = 0; i < MAXRESERVED; i++)
     if (!strcmp(s, reservedWords[i].str))
       return reservedWords[i].tok;
-  return ID;
+  return ID; // caso não seja retorna como sendo um identificador
 }
 
 /****************************************/
 /* the primary function of the scanner  */
 /****************************************/
-/* function getToken returns the
- * next token in source file
+/* corresponde a implementação do AFD
  */
+
 TokenType getToken(void)
-{ /* index for storing into tokenString */
+{ // armazena o token corrente 
   int tokenStringIndex = 0;
   /* holds current token to be returned */
   TokenType currentToken;
-  /* current state - always begins at START */
+  // armazena o estado corrente do AFD 
   StateType state = START;
-  /* flag to indicate save to tokenString */
+ //indica se um caracter que está sendo lido deva ou não compor o lexema
   int save;
   while (state != DONE)
   {
-    int c = getNextChar();
-    save = TRUE;
+    int c = getNextChar(); // pega o caracter
+    save = TRUE; // seta como true para entrar no switch
     switch (state)
     {
-    case START:
-      if (isdigit(c))
+    case START: // corresponde ao primeiro estado do automato
+      if (isdigit(c)) // se for um digito
         state = INNUM;
       else if (isalpha(c) || c == '_')
         state = INID;
@@ -155,7 +151,7 @@ TokenType getToken(void)
         }
       }
       break;
-    case INCOMMENT:
+    case INCOMMENT: // reconhecimento de comentario
       save = FALSE;
       if (c == EOF)
       {
@@ -176,7 +172,7 @@ TokenType getToken(void)
         currentToken = DDOT;
       }
       break;
-    case INNUM:
+    case INNUM: // reconhecimento de digito
       if (!isdigit(c))
       { /* backup in the input */
         ungetNextChar();
@@ -185,7 +181,7 @@ TokenType getToken(void)
         currentToken = NUM;
       }
       break;
-    case INID:
+    case INID: // aceitação de identificadores
       if (!isalpha(c) && !isdigit(c) && c != '_')
       { /* backup in the input */
         ungetNextChar();
@@ -202,19 +198,19 @@ TokenType getToken(void)
       break;
     }
 
-    if ((save) && (tokenStringIndex <= MAXTOKENLEN))
-      tokenString[tokenStringIndex++] = (char)c;
-    if (state == DONE)
+    if ((save) && (tokenStringIndex <= MAXTOKENLEN)) // se save for true e a posição no vetor do token for menor que MAXTOKENLEN
+      tokenString[tokenStringIndex++] = (char)c; // acrescenta ao letor do lexema
+    if (state == DONE) // se for o estado final
     {
       tokenString[tokenStringIndex] = '\0';
-      if (currentToken == ID)
-        currentToken = reservedLookup(tokenString);
+      if (currentToken == ID) // se for um identificador
+        currentToken = reservedLookup(tokenString); // chama essa função para verificar se é uma palavra reservada ou um ID
     }
   }
-  if (TraceScan)
+  if (TraceScan) // se estiver setada como true é impresso o token e seu tipo
   {
     fprintf(listing, "\t%d: ", lineno);
     printToken(currentToken, tokenString);
   }
-  return currentToken;
+  return currentToken; // retorna o token corrente (reconhecido)
 } /* end getToken */

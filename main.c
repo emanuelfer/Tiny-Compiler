@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 
     listing = stdout; /* send listing to screen */
     fprintf(listing, "\nTINY COMPILATION: %s\n", pgm);
-#if NO_PARSE
+#if NO_PARSE // se for setada como verdadeira a análise sintática não é realizada somente a lexica 
     while (getToken() != ENDFILE)
         ;
 #else
@@ -77,19 +77,19 @@ int main(int argc, char *argv[])
         fprintf(listing, "\nSyntax tree:\n");
         printTree(syntaxTree);
     }
-#if !NO_ANALYZE
+#if !NO_ANALYZE // se for verdadeiro e não houver nenhuma condição de erro referente a análise sintática, então é construída a tabela de símbolos
     if (!Error)
     {
         if (TraceAnalyze)
             fprintf(listing, "\nBuilding Symbol Table...\n");
-        buildSymtab(syntaxTree);
+        buildSymtab(syntaxTree); // essa função constroi a tabela de simbolos para a árvore sintática que recebeu como argumento
         if (TraceAnalyze)
             fprintf(listing, "\nChecking Types...\n");
-        typeCheck(syntaxTree);
+        typeCheck(syntaxTree); // faz a verificação de tipos para a árvore sintática
         if (TraceAnalyze)
             fprintf(listing, "\nType Checking Finished\n");
     }
-#if !NO_CODE
+#if !NO_CODE // se for verdadeiro e não houver nenhuma condição de erro em relação a semântica então gera código
     if (!Error)
     {
         char *codefile;
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
             printf("Unable to open %s\n", codefile);
             exit(1);
         }
-        codeGen(syntaxTree, codefile);
+        codeGen(syntaxTree, codefile); // recebe a árvore sintática e o árquivo que vai conter o código gerado
         fclose(code);
     }
 #endif

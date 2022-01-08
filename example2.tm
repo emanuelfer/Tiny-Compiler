@@ -22,6 +22,7 @@
  11:    LDA  7,1(7) 	unconditional jmp
  12:    LDC  0,1(0) 	true case
 * <- Op
+ 13:    JEQ  0,6422026(7) 	while: entra no corpo
 * -> Id
  14:     LD  0,0(5) 	load id value
 * <- Id
@@ -40,8 +41,7 @@
 * <- Op
  21:     ST  0,0(5) 	assign: store value
 * <- assign
- 22:    LDA  7,-19(7) 	while: jump after body comes back here
- 13:    JEQ  0,9(7) 	while: jump back to body
+* while: sai do corpo
 * <- while
 * End of execution.
- 23:   HALT  0,0,0 	
+ 22:   HALT  0,0,0 	

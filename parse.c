@@ -11,7 +11,8 @@
 
 static TokenType token; /* holds current token */
 
-/* function prototypes for recursive calls */
+// protótipo de todas as funções que compoem o analisador sintático
+// ca da função corresponte a um símbolo variável da gramática
 static TreeNode *stmt_sequence(void);
 static TreeNode *statement(void);
 static TreeNode *if_stmt(void);
@@ -32,6 +33,7 @@ static void syntaxError(char *message)
   Error = TRUE;
 }
 
+// verifica se o token que foi retornado pelo análizador léxico corresponde ao token esperado naquele momento da análise
 static void match(TokenType expected)
 {
   if (token == expected)
@@ -44,6 +46,7 @@ static void match(TokenType expected)
   }
 }
 
+// função que corresponde ao símbolo inicial da gramática
 TreeNode *stmt_sequence(void)
 {
   TreeNode *t = statement();
@@ -69,6 +72,8 @@ TreeNode *stmt_sequence(void)
   return t;
 }
 
+// encontra qual é o tipo de declaração báseado no token que foi lido e nos primeiros token esperados para cada tipo 
+// de declaração
 TreeNode *statement(void)
 {
   TreeNode *t = NULL;
@@ -101,26 +106,28 @@ TreeNode *statement(void)
   return t;
 }
 
+// reconhecer a declaração de if
 TreeNode *if_stmt(void)
 {
-  TreeNode *t = newStmtNode(IfK);
+  TreeNode *t = newStmtNode(IfK); // cria um nó de declaração com a função newStmtNode
   match(IF);
   if (t != NULL)
-    t->child[0] = exp();
+    t->child[0] = exp(); // chamada para construir a subarvore referente a expressão de controle
   match(THEN);
   if (t != NULL)
-    t->child[1] = stmt_sequence();
+    t->child[1] = stmt_sequence(); // construir a subarvore referente ao corpo do if
   if (token == ELSE)
   {
     match(ELSE);
     if (t != NULL)
-      t->child[2] = stmt_sequence();
+      t->child[2] = stmt_sequence(); // construir a subarvore referente ao corpo do else
   }
   match(ENDIF);
 
   return t;
 }
 
+// reconhecer a declaração de repeat
 TreeNode *repeat_stmt(void)
 {
   TreeNode *t = newStmtNode(RepeatK);
@@ -133,19 +140,20 @@ TreeNode *repeat_stmt(void)
   return t;
 }
 
+// reconhece a declaração while
 TreeNode *while_stmt(void)
 {
   TreeNode *t = newStmtNode(WhileK);
-  match(WHILE);
+  match(WHILE); // verifica o reconhecimento da marca WHILE
   if (t != NULL)
-    t->child[0] = exp();
-  match(THEN);
+    t->child[0] = exp(); // constroi a árvore da expressão de controle
   if (t != NULL)
-    t->child[1] = stmt_sequence();
-  match(ENDWHILE);
+    t->child[1] = stmt_sequence();  // declarações dentro do while
+  match(ENDWHILE);  // reconhece a marca de finalização do while
   return t;
 }
 
+// reconhecer a declaração de atribuição
 TreeNode *assign_stmt(void)
 {
   TreeNode *t = newStmtNode(AssignK);
@@ -158,6 +166,7 @@ TreeNode *assign_stmt(void)
   return t;
 }
 
+// reconhecer a declaração de leitura
 TreeNode *read_stmt(void)
 {
   TreeNode *t = newStmtNode(ReadK);
@@ -168,6 +177,7 @@ TreeNode *read_stmt(void)
   return t;
 }
 
+// reconhecer a declaração de escrita
 TreeNode *write_stmt(void)
 {
   TreeNode *t = newStmtNode(WriteK);
@@ -177,6 +187,7 @@ TreeNode *write_stmt(void)
   return t;
 }
 
+// retorna um ponteiro para a árvore de expressão de comparação
 TreeNode *exp(void)
 {
   TreeNode *t = simple_exp();
@@ -196,6 +207,7 @@ TreeNode *exp(void)
   return t;
 }
 
+// retorna um nó para uma expressão aritimetica
 TreeNode *simple_exp(void)
 {
   TreeNode *t = term();
@@ -214,6 +226,7 @@ TreeNode *simple_exp(void)
   return t;
 }
 
+// retorna um ponteiro para uma expressão
 TreeNode *term(void)
 {
   TreeNode *t = factor();
@@ -232,6 +245,7 @@ TreeNode *term(void)
   return t;
 }
 
+// reconhece três tipos de tokens um número, um identificador ou um parêntese abrindo
 TreeNode *factor(void)
 {
   TreeNode *t = NULL;
@@ -261,15 +275,14 @@ TreeNode *factor(void)
 /****************************************/
 /* the primary function of the parser   */
 /****************************************/
-/* Function parse returns the newly
- * constructed syntax tree
+/* Retorna um ponteiro para a árvore sintática construída
  */
 TreeNode *parse(void)
 {
   TreeNode *t;
-  token = getToken();
-  t = stmt_sequence();
+  token = getToken(); // reconhecimento de token
+  t = stmt_sequence(); // iniciar o reconhecimento sintático
   if (token != ENDFILE)
-    syntaxError("Code ends before file\n");
+    syntaxError("Code ends before file\n"); // retorna o ponteiro para a árvore sintática
   return t;
 }

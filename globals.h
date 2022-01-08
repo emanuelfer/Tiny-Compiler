@@ -22,7 +22,7 @@
 #define TRUE 1
 #endif
 
-/* MAXRESERVED = the number of reserved words */
+/*Vetor de palavras reservadas, sempre que acrescentamos uma palavra reservada ele dever ser modificado*/
 #define MAXRESERVED 10
 
 typedef enum
@@ -69,11 +69,14 @@ extern int lineno; /* source line number for listing */
 /***********   Syntax tree for parsing ************/
 /**************************************************/
 
+/*Código que especifica um nó de arvore sintatica tiny */
+
+
 typedef enum
 {
    StmtK,
    ExpK
-} NodeKind;
+} NodeKind; // estrutura de enumeração que contém os dois tipos de formação em tiny (declaração (Stmtk) e expressão)(Expk)
 typedef enum
 {
    IfK,
@@ -84,42 +87,45 @@ typedef enum
    SwitchK,
    CaseK,
    WhileK
-} StmtKind;
+} StmtKind; // corresponde as declarações existentes na linguagem
 typedef enum
 {
    OpK,
    ConstK,
    IdK
-} ExpKind;
+} ExpKind; // expressões da linguagem operadores aritiméticos, constantes e identificadores
 
-/* ExpType is used for type checking */
+/* usada para checagem de tipo */
 typedef enum
 {
    Void,
    Integer,
    Boolean
-} ExpType;
+} ExpType; /* usada para checagem de tipo */
 
+// Define a maior quantidade de filhos que um nó pode ter
 #define MAXCHILDREN 3
 
 typedef struct treeNode
 {
-   struct treeNode *child[MAXCHILDREN];
-   struct treeNode *sibling;
-   int lineno;
+   struct treeNode *child[MAXCHILDREN]; // vetor que contém ponteiros para os nós filhos
+   struct treeNode *sibling; // ponteiro para o nó irmão
+   int lineno; // guarda o número da linha no código fonte ao qual o nó se refere
    NodeKind nodekind;
    union
    {
       StmtKind stmt;
       ExpKind exp;
-   } kind;
+   } kind; // serve para dizer se é um nó de declaração ou expressão 
    union
    {
       TokenType op;
       int val;
       char *name;
-   } attr;
-   ExpType type; /* for type checking of exps */
+   } attr;// Armazena o operador (*,+,-,...), armazena o valor inteiro no caso de 
+             //uma constante númerica, armazena uma string no caso de um identidicador
+   ExpType type; // armazena o tipo do nó que pode ser ou integer  ou boolean e serve para verificação de tipo e é usada caso
+     // o nó seja do tipo expressão
 } TreeNode;
 
 /**************************************************/

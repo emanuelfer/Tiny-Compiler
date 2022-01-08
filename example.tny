@@ -1,5 +1,5 @@
 read x1;
-while x1 < 10 then
+while x1 < 10 
    x1 := x1 + 1;
 endwhile;
 write x1;

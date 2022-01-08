@@ -35,9 +35,12 @@ static void traverse(TreeNode *t,
   }
 }
 
-/* nullProc is a do-nothing procedure to
- * generate preorder-only or postorder-only
- * traversals from traverse
+/* não faz nada apenas serve para ser 
+utilizada como argumento da função traverse, 
+quando colocada no segundo argumento indica que a árvore 
+não terá uma função para percorre-la em pre-ordem
+e quando usada como terceiro argumento, significa 
+que não será percorrida em pós-ordem.
  */
 static void nullProc(TreeNode *t)
 {
@@ -47,9 +50,8 @@ static void nullProc(TreeNode *t)
     return;
 }
 
-/* Procedure insertNode inserts
- * identifiers stored in t into
- * the symbol table
+/*insere identificadores que estejam em 
+nós na árvore na tabela de símbolos
  */
 static void insertNode(TreeNode *t)
 {
@@ -60,12 +62,13 @@ static void insertNode(TreeNode *t)
     {
     case AssignK:
     case ReadK:
-      if (st_lookup(t->attr.name) == -1)
-        /* not yet in table, so treat as new definition */
+      if (st_lookup(t->attr.name) == -1)// se o identificador ainda não estiver na TS
+           // Insere o identificador pela linha abaixo 
         st_insert(t->attr.name, t->lineno, location++);
-      else
-        /* already in table, so ignore location,
-             add line number of use only */
+        // insere o nome da variável, o número da linha que a variável está e 
+        // a localização da variável na tabela de simbolos
+      else // se já estiver na tabela
+        // adiciona o número da linha onde a variável está aparecendo novamente no código fonte
         st_insert(t->attr.name, t->lineno, 0);
       break;
     default:
@@ -93,12 +96,13 @@ static void insertNode(TreeNode *t)
   }
 }
 
-/* Function buildSymtab constructs the symbol
- * table by preorder traversal of the syntax tree
+/* constroi a tabela de símbolos de acordo com 
+a árvore sintática passada
  */
 void buildSymtab(TreeNode *syntaxTree)
 {
-  traverse(syntaxTree, insertNode, nullProc);
+  traverse(syntaxTree, insertNode, nullProc);// percore a arvore síntática fazendo a inserção de identificadores na tabela de simbolos
+// posssui três argumentos arvore sintática, função insertNode (insere na TS as informações sobre os nós de identificadores), nullProc nada é feito 
   if (TraceAnalyze)
   {
     fprintf(listing, "\nSymbol table:\n\n");
@@ -106,14 +110,16 @@ void buildSymtab(TreeNode *syntaxTree)
   }
 }
 
+/* Emite uma mensagem de erro semantico indicando o número da linha e 
+seta a variável erro como true para signigficar que há um erro semantico
+*/
 static void typeError(TreeNode *t, char *message)
 {
   fprintf(listing, "Type error at line %d: %s\n", t->lineno, message);
   Error = TRUE;
 }
 
-/* Procedure checkNode performs
- * type checking at a single tree node
+/* Faz a checagem de tipo a cada nó da arvore
  */
 static void checkNode(TreeNode *t)
 {
@@ -123,13 +129,14 @@ static void checkNode(TreeNode *t)
     switch (t->kind.exp)
     {
     case OpK:
+      // se o nó é do tipo operador verifica se os filhos são do tipo integer
       if ((t->child[0]->type != Integer) ||
           (t->child[1]->type != Integer))
         typeError(t, "Op applied to non-integer");
-      if ((t->attr.op == EQ) || (t->attr.op == LT))
-        t->type = Boolean;
+      if ((t->attr.op == EQ) || (t->attr.op == LT)) //verifica se o operador é < ou =
+        t->type = Boolean; // se for a expressão á boleana
       else
-        t->type = Integer;
+        t->type = Integer; // se não inteira
       break;
     case ConstK:
     case IdK:
@@ -171,10 +178,9 @@ static void checkNode(TreeNode *t)
   }
 }
 
-/* Procedure typeCheck performs type checking
- * by a postorder syntax tree traversal
+/* faz a verificação de tipos em relação a arvore sintatica que recebe como argumento
  */
 void typeCheck(TreeNode *syntaxTree)
 {
-  traverse(syntaxTree, nullProc, checkNode);
+  traverse(syntaxTree, nullProc, checkNode);  // traverse aplica a função checkNode sobre cada nó enquanto percorre a árvore
 }

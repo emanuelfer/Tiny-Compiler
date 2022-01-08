@@ -21,13 +21,18 @@ static int tmpOffset = 0;
 /* prototype for internal recursive code generator */
 static void cGen(TreeNode *tree);
 
-/* Procedure genStmt generates code at a statement node */
+/*
+função que gera código para instruções de sentença como read, write, if, repeat e atribuição
+*/
 static void genStmt(TreeNode *tree)
 {
+   // declara 3 ponteiros para os nós filhos
    TreeNode *p1, *p2, *p3, *curCase;
    int savedLoc1, savedLoc2, currentLoc, jmpToNextLoc, lastPos;
+   // declara 3 variáveis inteiras savedLoc1,savedLoc2,currentLoc 
+   // servem para guarda posições de geração de código, guardam o local para onde deve ser feito o salto
    int loc;
-   switch (tree->kind.stmt)
+   switch (tree->kind.stmt) // função com o tipo de cada nó
    {
    case SwitchK:
       if (TraceCode)
@@ -99,37 +104,38 @@ static void genStmt(TreeNode *tree)
    case RepeatK:
       if (TraceCode)
          emitComment("-> repeat");
-      p1 = tree->child[0];
-      p2 = tree->child[1];
-      savedLoc1 = emitSkip(0);
+      // cria dois ponteiros para os filhos do repeat
+      p1 = tree->child[0]; // para instruções do corpo do repeat
+      p2 = tree->child[1]; // para instruções da expressão do repeat
+      savedLoc1 = emitSkip(0); // salva a instrução da primeira posição do corpo do repeat
       emitComment("repeat: jump after body comes back here");
-      /* generate code for body */
-      cGen(p1);
-      /* generate code for test */
-      cGen(p2);
+      cGen(p1); // chama para gerar código para todo o corpo do repeat
+      cGen(p2); // chama para gerar código para a expressão de controle
+      /* emite a instrução JEQ (jump if equal) que serve para fazer um salto para a posição armazenada em saveLock1
+         que é o inicio do corpo do repeat
+         O salto é dado se o registrador ac que é o registrador de número 0, que no caso 
+         da geração de código para expressões lógicas, vai conter o resultado da avaliação dessa expressão
+         v = 1 e F = 0
+         O PC faz um salto para a posição savelock1 se o conteúdo de AC for == 0 que corresponde a falso
+      */
       emitRM_Abs("JEQ", ac, savedLoc1, "repeat: jmp back to body");
       if (TraceCode)
          emitComment("<- repeat");
       break; /* repeat */
 
    case WhileK:
-      if (TraceCode)
-         emitComment("-> while");
-      p1 = tree->child[0];
-      p2 = tree->child[1];
-      currentLoc = emitSkip(0);
+      if (TraceCode) emitComment("-> while") ;
+      p1 = tree->child[0] ; // para instrução da expressão do while
+      p2 = tree->child[1] ; // para instruções do corpo do while
+      // gera o código para a expressão
       cGen(p1);
-      savedLoc1 = emitSkip(1);
-      cGen(p2);
-      emitRM_Abs("LDA", pc, currentLoc, "while: jump after body comes back here");
-      currentLoc = emitSkip(0);
-      emitBackup(savedLoc1);
-      emitRM_Abs("JEQ", ac, currentLoc, "while: jump back to body");
-      emitRestore();
-      if (TraceCode)
-         emitComment("<- while");
-      break; /* while */
-
+      // verifica se pode entrar no corpo do while
+      emitRM_Abs("JEQ",ac,savedLoc1,"while: entra no corpo");
+      savedLoc1 = emitSkip(0); // salva a instrução da primeira posição do corpo do while
+      cGen(p2); // gera código para o corpo
+      emitComment("while: sai do corpo"); // emite um comentário
+      if (TraceCode)  emitComment("<- while") ;
+      break;
    case AssignK:
       if (TraceCode)
          emitComment("-> assign");
@@ -238,8 +244,7 @@ static void genExp(TreeNode *tree)
    }
 } /* genExp */
 
-/* Procedure cGen recursively generates code by
- * tree traversal
+/* gera recursivamente código pelo percurso na árvore
  */
 static void cGen(TreeNode *tree)
 {
@@ -247,16 +252,16 @@ static void cGen(TreeNode *tree)
    {
       switch (tree->nodekind)
       {
-      case StmtK:
-         genStmt(tree);
+      case StmtK: // se for um nó de sentença
+         genStmt(tree); // chama essa função para gerar código para esse nó
          break;
-      case ExpK:
+      case ExpK:  // se for expressão
          genExp(tree);
          break;
       default:
          break;
       }
-      cGen(tree->sibling);
+      cGen(tree->sibling); // chama recursivamente cgen passando o nó irmão como argumento
    }
 }
 

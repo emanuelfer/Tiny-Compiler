@@ -79,18 +79,17 @@ void printToken(TokenType token, const char *tokenString)
   }
 }
 
-/* Function newStmtNode creates a new statement
- * node for syntax tree construction
- */
-/* 语法树 */
+/*
+  Cria e retorna um nó de sentença
+*/
 TreeNode *newStmtNode(StmtKind kind)
 {
-  TreeNode *t = (TreeNode *)malloc(sizeof(TreeNode));
+  TreeNode *t = (TreeNode *)malloc(sizeof(TreeNode)); // aloca memória para um nó
   int i;
   if (t == NULL)
     fprintf(listing, "Out of memory error at line %d\n", lineno);
   else
-  {
+  { // preenche os ponteiros e atributos no nó com os valores apropriados
     for (i = 0; i < MAXCHILDREN; i++)
       t->child[i] = NULL;
     t->sibling = NULL;
@@ -101,10 +100,9 @@ TreeNode *newStmtNode(StmtKind kind)
   return t;
 }
 
-/* Function newExpNode creates a new expression
- * node for syntax tree construction
- */
-/* 语义树 */
+/*
+  Cria e retorna um ponteiro para um só de expressão
+*/
 TreeNode *newExpNode(ExpKind kind)
 {
   TreeNode *t = (TreeNode *)malloc(sizeof(TreeNode));
