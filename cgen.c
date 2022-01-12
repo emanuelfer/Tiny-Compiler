@@ -124,18 +124,26 @@ static void genStmt(TreeNode *tree)
       break; /* repeat */
 
    case WhileK:
-      if (TraceCode) emitComment("-> while") ;
-      p1 = tree->child[0] ; // para instrução da expressão do while
-      p2 = tree->child[1] ; // para instruções do corpo do while
-      // gera o código para a expressão
-      cGen(p1);
-      // verifica se pode entrar no corpo do while
-      emitRM_Abs("JEQ",ac,savedLoc1,"while: entra no corpo");
-      savedLoc1 = emitSkip(0); // salva a instrução da primeira posição do corpo do while
-      cGen(p2); // gera código para o corpo
-      emitComment("while: sai do corpo"); // emite um comentário
-      if (TraceCode)  emitComment("<- while") ;
-      break;
+      if (TraceCode)
+         emitComment("-> while");
+      p1 = tree->child[0];
+      p2 = tree->child[1];
+      currentLoc = emitSkip(0); // recebe a localização do código corrente
+      cGen(p1); // gera código para a expressão
+      savedLoc1 = emitSkip(1); // pula a declaração seguinte e grava sua localização
+      // para posteriormente efetuar um ajuste retroativo
+      cGen(p2); // gera código para o corpo do while
+      emitRM_Abs("LDA", pc, currentLoc, "while: jump after body comes back here"); // gerar salto incondicional usando LDA e o pc como registrador-alvo
+      currentLoc = emitSkip(0); // recebe a localização do código corrente
+      emitBackup(savedLoc1); // ajustar a localização da instrução corrente em uma localização anterior para ajuste retroativo
+      emitRM_Abs("JEQ", ac, currentLoc, "while: jump back to body");// converte o salto dessa localização
+      // absoluta em um salto relativo ao PC
+      emitRestore(); // usada para retornar a localização da instrução corrente para o valor anterior
+      // a ativação de emitBackup(savedLoc1);
+      if (TraceCode)
+         emitComment("<- while");
+      break; /* while */
+
    case AssignK:
       if (TraceCode)
          emitComment("-> assign");

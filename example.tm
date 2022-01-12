@@ -22,26 +22,26 @@
  11:    LDA  7,1(7) 	unconditional jmp
  12:    LDC  0,1(0) 	true case
 * <- Op
- 13:    JEQ  0,6422026(7) 	while: entra no corpo
+ 14:    JEQ  0,-2(7) 	while: entra no corpo
 * -> assign
 * -> Op
 * -> Id
- 14:     LD  0,0(5) 	load id value
+ 15:     LD  0,0(5) 	load id value
 * <- Id
- 15:     ST  0,0(6) 	op: push left
+ 16:     ST  0,0(6) 	op: push left
 * -> Const
- 16:    LDC  0,1(0) 	load const
+ 17:    LDC  0,1(0) 	load const
 * <- Const
- 17:     LD  1,0(6) 	op: load left
- 18:    ADD  0,1,0 	op +
+ 18:     LD  1,0(6) 	op: load left
+ 19:    ADD  0,1,0 	op +
 * <- Op
- 19:     ST  0,0(5) 	assign: store value
+ 20:     ST  0,0(5) 	assign: store value
 * <- assign
 * while: sai do corpo
 * <- while
 * -> Id
- 20:     LD  0,0(5) 	load id value
+ 21:     LD  0,0(5) 	load id value
 * <- Id
- 21:    OUT  0,0,0 	write ac
+ 22:    OUT  0,0,0 	write ac
 * End of execution.
- 22:   HALT  0,0,0 	
+ 23:   HALT  0,0,0 	
